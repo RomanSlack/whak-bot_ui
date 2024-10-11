@@ -1,52 +1,49 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false); // To manage loading state
 
-  const apiKey = "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"
+  const apiKey = 'YOUR_OPENAI_API_KEY'; // Replace with your OpenAI API Key
   const apiEndpoint = 'https://api.openai.com/v1/chat/completions';
 
   // Function to call ChatGPT API
   const fetchResponse = async (userMessage) => {
-    setIsLoading(true);  // Start loading spinner
+    setIsLoading(true); // Start loading
     try {
       const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
+        apiEndpoint,
         {
-          model: 'gpt-3.5-turbo',  // Specify the model (or 'gpt-4' if available in your account)
-          messages: [...messages, { role: 'user', content: userMessage }],  // Pass the message history including the user's input
-          max_tokens: 100,  // Limit the response length
-          temperature: 0.7  // Optional: Controls the randomness of the response
+          model: 'gpt-4', // or 'gpt-3.5-turbo'
+          messages: [{ role: 'system', content: 'You are ChatGPT' }, ...messages, { role: 'user', content: userMessage }],
+          max_tokens: 150,
         },
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,  // Add the API key to the request header
+            Authorization: `Bearer ${apiKey}`,
           },
         }
       );
-  
-      // Extract ChatGPT's message from the response
+      // Extract ChatGPT's message
       const botMessage = response.data.choices[0].message.content;
-  
-      // Append the bot's response to the messages array
+
+      // Update the messages state with ChatGPT's response
       setMessages((prevMessages) => [
         ...prevMessages,
         { role: 'user', content: userMessage },
         { role: 'assistant', content: botMessage },
       ]);
     } catch (error) {
-      console.error('Error fetching data from OpenAI API:', error.response?.data?.error || error.message);
+      console.error('Error fetching data from OpenAI API:', error);
       setMessages((prevMessages) => [
         ...prevMessages,
         { role: 'system', content: 'Error: Unable to get a response from ChatGPT.' },
       ]);
     } finally {
-      setIsLoading(false);  // Stop the loading spinner
+      setIsLoading(false); // Stop loading
     }
   };
 
